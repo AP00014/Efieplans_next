@@ -1,0 +1,365 @@
+/* Construction Service Page Styles */
+
+/* Hero Section */
+.construction-hero {
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  overflow: hidden;
+}
+
+.construction-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070') center/cover;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.construction-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
+  z-index: 1;
+}
+
+/* Construction Type Cards */
+.construction-type-card {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-top: 5px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.construction-type-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 165, 0, 0.1), transparent);
+  transition: left 0.6s ease;
+}
+
+.construction-type-card:hover::before {
+  left: 100%;
+}
+
+.construction-type-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(255, 165, 0, 0.2);
+  border-top-color: #FF8C00;
+}
+
+.construction-icon {
+  font-size: 3.5rem;
+  color: #FF8C00;
+  margin-bottom: 1.5rem;
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.construction-type-card:hover .construction-icon {
+  transform: rotateY(360deg) scale(1.2);
+}
+
+.construction-type-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
+}
+
+.construction-type-desc {
+  color: #555;
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.construction-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.construction-feature {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.construction-feature:hover {
+  background: rgba(255, 107, 53, 0.05);
+  padding-left: 1rem;
+}
+
+.construction-feature svg {
+  color: #FF8C00;
+  flex-shrink: 0;
+}
+
+/* Process Steps */
+.construction-process-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.construction-process-step {
+  position: relative;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 2px solid transparent;
+  transition: all 0.4s ease;
+}
+
+.construction-process-step:hover {
+  border-color: #FF8C00;
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(255, 107, 53, 0.15);
+}
+
+.process-step-number {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  font-size: 4rem;
+  font-weight: 900;
+  color: rgba(255, 107, 53, 0.15);
+  line-height: 1;
+  z-index: 0;
+}
+
+.process-step-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  position: relative;
+  z-index: 1;
+  color: #1a1a2e;
+}
+
+.process-step-desc {
+  color: #666;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Intro Section */
+.construction-intro-image {
+  position: relative;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+  transition: transform 0.5s ease;
+}
+
+.construction-intro-image:hover {
+  transform: scale(1.03) rotate(1deg);
+}
+
+.construction-intro-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transition: transform 0.6s ease;
+}
+
+.construction-intro-image:hover img {
+  transform: scale(1.1);
+}
+
+.construction-float-badge {
+  position: absolute;
+  bottom: -30px;
+  left: -30px;
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+  animation: float 4s ease-in-out infinite;
+  max-width: 280px;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(1deg);
+  }
+}
+
+.construction-badge-icon {
+  background: linear-gradient(135deg, #FACC15, #EAB308);
+  padding: 0.75rem;
+  border-radius: 50%;
+  color: white;
+  margin-right: 1rem;
+}
+
+/* CTA Section */
+.construction-cta {
+  background: linear-gradient(135deg, #1a1a2e 0%, #FF8C00 100%);
+  padding: 5rem 2rem;
+  border-radius: 2rem;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+
+.construction-cta::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.construction-cta-content {
+  position: relative;
+  z-index: 1;
+}
+
+.construction-cta-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  color: white;
+  margin-bottom: 1.5rem;
+  text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.construction-cta-desc {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 2.5rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.construction-cta-buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.construction-cta-btn-primary {
+  background: white;
+  color: #FF8C00;
+  padding: 1.25rem 3rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.construction-cta-btn-primary:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  background: #f8f9fa;
+}
+
+.construction-cta-btn-secondary {
+  background: transparent;
+  color: white;
+  padding: 1.25rem 3rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  border: 3px solid white;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.construction-cta-btn-secondary:hover {
+  background: white;
+  color: #FF8C00;
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.2);
+}
+
+/* Dark Mode Support */
+:root[data-theme="dark"] .construction-type-card {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+:root[data-theme="dark"] .construction-type-title {
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .construction-type-desc {
+  color: #d1d5db;
+}
+
+:root[data-theme="dark"] .construction-process-step {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+:root[data-theme="dark"] .process-step-title {
+  color: #f9fafb;
+}
+
+:root[data-theme="dark"] .process-step-desc {
+  color: #d1d5db;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .construction-hero {
+    min-height: 50vh;
+  }
+
+  .construction-type-card {
+    padding: 1.75rem;
+  }
+
+  .construction-cta {
+    padding: 3rem 1.5rem;
+  }
+
+  .construction-cta-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .construction-float-badge {
+    display: none;
+  }
+}

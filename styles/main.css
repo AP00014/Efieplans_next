@@ -1,0 +1,168 @@
+/* Main CSS File - Imports all component and page styles */
+
+/* Base Styles */
+@import './base.css';
+
+/* Animations */
+@import './animations.css';
+
+/* Layout Components */
+@import './components/Layout.css';
+@import './components/Navbar.css';
+@import './components/Footer.css';
+
+/* Home Page Components */
+@import './components/HeroSection.css';
+@import './components/ServicesSection.css';
+@import './components/PortfolioSection.css';
+@import './components/TestimonialsSection.css';
+@import './components/ContactSection.css';
+
+/* Pages */
+@import './pages/Home.css';
+@import './pages/About.css';
+
+/* Media Queries for Responsive Design */
+@media (max-width: 1280px) {
+  :root {
+    --container-padding: 2rem;
+  }
+  
+  .container {
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --container-padding: 1.5rem;
+  }
+  
+  html {
+    font-size: 95%;
+  }
+  
+  .hero-section {
+    padding: 6rem 0;
+  }
+  
+  .section {
+    padding: 4rem 0;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --container-padding: 1.25rem;
+  }
+  
+  html {
+    font-size: 90%;
+  }
+  
+  .hero-section {
+    padding: 4rem 0;
+  }
+  
+  .section {
+    padding: 3rem 0;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .navbar-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background-color: var(--background-color-light);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+}
+
+/* Responsive fix for 740px breakpoint */
+@media (max-width: 740px) {
+  :root {
+    --container-padding: 1rem;
+  }
+  
+  html {
+    font-size: 88%;
+  }
+  
+  .hero-section {
+    padding: 3.5rem 0;
+  }
+  
+  .section {
+    padding: 2.5rem 0;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  h1 {
+    font-size: 2.75rem;
+  }
+  
+  h2 {
+    font-size: 2.25rem;
+  }
+  
+  .btn {
+    padding: 0.65rem 1.3rem;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --container-padding: 1rem;
+  }
+  
+  html {
+    font-size: 85%;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  h2 {
+    font-size: 2rem;
+  }
+  
+  .hero-section {
+    padding: 3rem 0;
+  }
+  
+  .section {
+    padding: 2rem 0;
+  }
+  
+  .btn {
+    padding: 0.6rem 1.2rem;
+  }
+}
