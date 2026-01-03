@@ -1,6 +1,7 @@
 // @ts-expect-error: Deno types not available in this environment
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
 import { createClient } from "@supabase/supabase-js";
+// @ts-expect-error: Resend types not available in Deno environment
 import { Resend } from "resend";
 
 function escapeHtml(text: string): string {
