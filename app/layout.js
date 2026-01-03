@@ -7,7 +7,12 @@ export const metadata = {
   title: "Efie Plans - Architectural Design & Construction",
   description: "Efie Plans provides professional architectural designs, building, and construction services.",
   icons: {
-    icon: "/icon.avif",
+    icon: [
+      { url: "/icon.avif", type: "image/avif" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/icon.avif",
   },
 };
 

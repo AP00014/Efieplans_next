@@ -17,6 +17,7 @@
 @import './components/PortfolioSection.css';
 @import './components/TestimonialsSection.css';
 @import './components/ContactSection.css';
+@import './components/Pagination.css';
 
 /* Pages */
 @import './pages/Home.css';

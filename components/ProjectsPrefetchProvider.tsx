@@ -30,8 +30,6 @@ export default function ProjectsPrefetchProvider({
           projectsCache.prefetchAllProjects(),
           blogCache.prefetchAllPosts(),
         ]);
-        
-        console.log("✅ All projects and blog posts prefetched and ready");
       } catch (error) {
         console.error("❌ Error prefetching data:", error);
       } finally {

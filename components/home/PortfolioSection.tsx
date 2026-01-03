@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { FiExternalLink, FiArrowRight } from "react-icons/fi";
-import { useCachedProjects } from "../../hooks/useCachedProjects";
+import { useShowcaseProjects } from "../../hooks/useShowcaseProjects";
 import OptimizedImage from "../OptimizedImage";
 import "../../styles/components/PortfolioSection.css";
 
 const PortfolioSection = () => {
-  const { projects, loading } = useCachedProjects(6);
+  const { projects, loading } = useShowcaseProjects();
 
   // Get description snippet for overlay
   const getDescriptionSnippet = (description: string) => {
@@ -46,11 +46,14 @@ const PortfolioSection = () => {
           <div className="imagesleft">
             {projects[0] && (
               <div className="showcas_img_1">
-                <img
+                <OptimizedImage
                   src={projects[0].image}
                   alt={`${projects[0].title} project showcase`}
                   className="img_1"
-                  loading="lazy"
+                  width={800}
+                  height={600}
+                  priority={true}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="image-overlay">
                   <h3>{projects[0].title}</h3>
@@ -66,11 +69,14 @@ const PortfolioSection = () => {
             )}
             {projects[1] && (
               <div className="showcas_img_2">
-                <img
+                <OptimizedImage
                   src={projects[1].image}
                   alt={`${projects[1].title} project showcase`}
                   className="img_2"
-                  loading="lazy"
+                  width={800}
+                  height={600}
+                  priority={true}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="image-overlay">
                   <h3>{projects[1].title}</h3>
@@ -90,11 +96,14 @@ const PortfolioSection = () => {
             <div className="img_layout1">
               {projects[2] && (
                 <div className="showcas_img_3">
-                  <img
+                  <OptimizedImage
                     src={projects[2].image}
                     alt={`${projects[2].title} project showcase`}
                     className="img_1"
-                    loading="lazy"
+                    width={600}
+                    height={450}
+                    priority={false}
+                    sizes="(max-width: 768px) 100vw, 25vw"
                   />
                   <div className="image-overlay">
                     <h3>{projects[2].title}</h3>
@@ -110,11 +119,14 @@ const PortfolioSection = () => {
               )}
               {projects[3] && (
                 <div className="showcas_img_4">
-                  <img
+                  <OptimizedImage
                     src={projects[3].image}
                     alt={`${projects[3].title} project showcase`}
                     className="img_1"
-                    loading="lazy"
+                    width={600}
+                    height={450}
+                    priority={false}
+                    sizes="(max-width: 768px) 100vw, 25vw"
                   />
                   <div className="image-overlay">
                     <h3>{projects[3].title}</h3>
@@ -133,11 +145,14 @@ const PortfolioSection = () => {
             <div className="img_layout2">
               {projects[4] && (
                 <div className="showcas_img_5">
-                  <img
+                  <OptimizedImage
                     src={projects[4].image}
                     alt={`${projects[4].title} project showcase`}
                     className="img_1"
-                    loading="lazy"
+                    width={600}
+                    height={450}
+                    priority={false}
+                    sizes="(max-width: 768px) 100vw, 25vw"
                   />
                   <div className="image-overlay">
                     <h3>{projects[4].title}</h3>
@@ -153,11 +168,14 @@ const PortfolioSection = () => {
               )}
               {projects[5] && (
                 <div className="showcas_img_6">
-                  <img
+                  <OptimizedImage
                     src={projects[5].image}
                     alt={`${projects[5].title} project showcase`}
                     className="img_1"
-                    loading="lazy"
+                    width={600}
+                    height={450}
+                    priority={false}
+                    sizes="(max-width: 768px) 100vw, 25vw"
                   />
                   <div className="image-overlay">
                     <h3>{projects[5].title}</h3>

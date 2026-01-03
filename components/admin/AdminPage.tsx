@@ -3913,6 +3913,7 @@ const CreateProjectContent: React.FC = () => {
 
 // Manage Projects Component
 const ManageProjectsContent: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"projects" | "showcase">("projects");
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -3930,7 +3931,7 @@ const ManageProjectsContent: React.FC = () => {
       // Optimized query: Only fetch fields needed for admin list view
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, created_at, updated_at")
+        .select("id, title, description, status, image, location, category, created_at, updated_at, showcase_position")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -5430,14 +5431,36 @@ const ManageProjectsContent: React.FC = () => {
     );
   }
 
-  // Default: Show project list
+  // Show tabs and content based on activeTab
   return (
     <div className="content-section">
       <div className="section-header">
         <h1>Manage Projects</h1>
-        <p>View, edit, and delete projects</p>
+        <p>View, edit, and manage projects and showcase</p>
       </div>
 
+      {/* Tabs */}
+      <div className="admin-tabs">
+        <button
+          className={`admin-tab ${activeTab === "projects" ? "active" : ""}`}
+          onClick={() => setActiveTab("projects")}
+        >
+          <FolderKanban size={18} />
+          <span>Project List</span>
+        </button>
+        <button
+          className={`admin-tab ${activeTab === "showcase" ? "active" : ""}`}
+          onClick={() => setActiveTab("showcase")}
+        >
+          <Star size={18} />
+          <span>Showcase Management</span>
+        </button>
+      </div>
+
+      {activeTab === "showcase" ? (
+        <ShowcaseManagementContent />
+      ) : (
+        <>
       <div className="management-controls">
         <div className="search-container">
           <button
@@ -5592,6 +5615,285 @@ const ManageProjectsContent: React.FC = () => {
           <p>No projects found</p>
         </div>
       )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// Showcase Management Component
+const ShowcaseManagementContent: React.FC = () => {
+  const [allProjects, setAllProjects] = useState<Project[]>([]);
+  const [showcaseProjects, setShowcaseProjects] = useState<(Project | null)[]>(new Array(6).fill(null));
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    fetchAllProjects();
+    fetchShowcaseProjects();
+  }, []);
+
+  const fetchAllProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title, description, status, image, location, category, showcase_position")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setAllProjects(data || []);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchShowcaseProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, title, description, status, image, location, category, showcase_position")
+        .not("showcase_position", "is", null)
+        .order("showcase_position", { ascending: true });
+
+      if (error) throw error;
+
+      const showcaseArray: (Project | null)[] = new Array(6).fill(null);
+      (data || []).forEach((project) => {
+        const position = project.showcase_position;
+        if (position && position >= 1 && position <= 6) {
+          showcaseArray[position - 1] = project as Project;
+        }
+      });
+
+      setShowcaseProjects(showcaseArray);
+    } catch (error) {
+      console.error("Error fetching showcase projects:", error);
+    }
+  };
+
+  const assignToPosition = async (projectId: string, position: number) => {
+    try {
+      setSaving(true);
+
+      // First, remove the project from its current position if it has one
+      const currentProject = allProjects.find(p => p.id === projectId);
+      if (currentProject?.showcase_position) {
+        await supabase
+          .from("projects")
+          .update({ showcase_position: null })
+          .eq("id", projectId);
+      }
+
+      // Remove any project currently at this position
+      const existingAtPosition = showcaseProjects[position - 1];
+      if (existingAtPosition) {
+        await supabase
+          .from("projects")
+          .update({ showcase_position: null })
+          .eq("id", existingAtPosition.id);
+      }
+
+      // Assign the new project to this position
+      const { error } = await supabase
+        .from("projects")
+        .update({ showcase_position: position })
+        .eq("id", projectId);
+
+      if (error) throw error;
+
+      // Refresh data
+      await fetchAllProjects();
+      await fetchShowcaseProjects();
+    } catch (error) {
+      console.error("Error assigning project to showcase:", error);
+      alert("Failed to assign project to showcase position");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const removeFromShowcase = async (position: number) => {
+    try {
+      setSaving(true);
+      const project = showcaseProjects[position - 1];
+      if (!project) return;
+
+      const { error } = await supabase
+        .from("projects")
+        .update({ showcase_position: null })
+        .eq("id", project.id);
+
+      if (error) throw error;
+
+      await fetchAllProjects();
+      await fetchShowcaseProjects();
+    } catch (error) {
+      console.error("Error removing project from showcase:", error);
+      alert("Failed to remove project from showcase");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const filteredProjects = allProjects.filter(
+    (project) =>
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const positionLabels = [
+    "Position 1 (Left Top)",
+    "Position 2 (Left Bottom)",
+    "Position 3 (Right Top Left)",
+    "Position 4 (Right Top Right)",
+    "Position 5 (Right Bottom Left)",
+    "Position 6 (Right Bottom Right)",
+  ];
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "3rem" }}>
+        <div className="loading-spinner"></div>
+        <p>Loading showcase management...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="section-header" style={{ marginBottom: "2rem", marginTop: "1rem" }}>
+        <h2>Showcase Management</h2>
+        <p>Select which projects appear in the home page showcase and their positions</p>
+      </div>
+
+      {/* Showcase Preview */}
+      <div className="showcase-preview-section">
+        <h2>Current Showcase Layout</h2>
+        <div className="showcase-preview-grid">
+          {showcaseProjects.map((project, index) => (
+            <div key={index} className="showcase-preview-item">
+              <div className="showcase-preview-header">
+                <h3>{positionLabels[index]}</h3>
+                {project && (
+                  <button
+                    className="remove-showcase-btn"
+                    onClick={() => removeFromShowcase(index + 1)}
+                    disabled={saving}
+                    title="Remove from showcase"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              {project ? (
+                <div className="showcase-preview-content">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="showcase-preview-image"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        "https://via.placeholder.com/300?text=No+Image";
+                    }}
+                  />
+                  <div className="showcase-preview-info">
+                    <h4>{project.title}</h4>
+                    <p>📍 {project.location}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="showcase-preview-empty">
+                  <p>No project assigned</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Project Selection */}
+      <div className="showcase-project-selection">
+        <h2>Select Projects</h2>
+        <div className="search-container">
+          <Search size={20} />
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          {searchTerm && (
+            <button
+              className="clear-search-btn"
+              onClick={() => setSearchTerm("")}
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+
+        <div className="projects-grid-showcase">
+          {filteredProjects.map((project) => {
+            const currentPosition = project.showcase_position;
+            return (
+              <div key={project.id} className="project-card-showcase">
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="project-card-image"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "https://via.placeholder.com/300?text=No+Image";
+                  }}
+                />
+                <div className="project-card-content">
+                  <h3>{project.title}</h3>
+                  <p>📍 {project.location}</p>
+                  {currentPosition && (
+                    <div className="current-position-badge">
+                      Currently at Position {currentPosition}
+                    </div>
+                  )}
+                  <div className="position-selector">
+                    <label>Assign to position:</label>
+                    <select
+                      value={currentPosition || ""}
+                      onChange={(e) => {
+                        const position = e.target.value
+                          ? parseInt(e.target.value)
+                          : null;
+                        if (position) {
+                          assignToPosition(project.id, position);
+                        } else if (currentPosition) {
+                          removeFromShowcase(currentPosition);
+                        }
+                      }}
+                      disabled={saving}
+                    >
+                      <option value="">Not in showcase</option>
+                      {[1, 2, 3, 4, 5, 6].map((pos) => (
+                        <option key={pos} value={pos}>
+                          Position {pos} - {positionLabels[pos - 1]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {filteredProjects.length === 0 && (
+          <div className="empty-state">
+            <p>No projects found</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

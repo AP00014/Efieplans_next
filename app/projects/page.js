@@ -12,13 +12,9 @@ import { supabase } from "../../lib/supabase";
 import { projectsCache } from "../../lib/projectsCache";
 import OptimizedImage from "../../components/OptimizedImage";
 import { useRouter } from "next/navigation";
+import Pagination from "../../components/common/Pagination";
 
-const ProjectGrid = ({ selectedCategory, projects }) => {
-  const filteredProjects =
-    selectedCategory === "all"
-      ? projects
-      : projects.filter((project) => project.category === selectedCategory);
-
+const ProjectGrid = ({ projects }) => {
   return (
     <motion.div
       className="projects-grid"
@@ -28,7 +24,7 @@ const ProjectGrid = ({ selectedCategory, projects }) => {
       viewport={{ once: true, margin: "-100px" }}
     >
       <div className="projects-container">
-        {filteredProjects.map((project, index) => (
+        {projects.map((project, index) => (
           <motion.div
             key={project.id}
             className="project-card"
@@ -49,9 +45,10 @@ const ProjectGrid = ({ selectedCategory, projects }) => {
               src={project.image}
               alt={project.title}
               className="project-image"
-              width={600}
-              height={400}
-              priority={index < 6}
+              width={400}
+              height={300}
+              priority={index < 3}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             <div className="project-info">
               <h4>{project.title}</h4>
@@ -258,75 +255,83 @@ const CategoryFilter = ({ projects }) => {
           ))}
         </Slider>
       </motion.div>
-      <ProjectGrid selectedCategory={selectedCategory} projects={projects} />
+      <ProjectGrid projects={projects} />
     </motion.div>
   );
 };
 
 const Projects = () => {
+  const searchParams = useSearchParams();
+  const selectedCategory = searchParams.get("category") || "all";
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProjects, setTotalProjects] = useState(0);
   const PROJECTS_PER_PAGE = 12;
 
   const fetchProjects = useCallback(
-    async (loadMore = false, currentProjects) => {
+    async (page = 1, category = "all") => {
       try {
-        if (loadMore) {
-          setLoadingMore(true);
-        } else {
-          setLoading(true);
-        }
+        setLoading(true);
 
-        const from = loadMore ? currentProjects.length : 0;
+        const from = (page - 1) * PROJECTS_PER_PAGE;
         const to = from + PROJECTS_PER_PAGE - 1;
+
+        // Filter projects by category if needed
+        let filteredProjects = [];
+        let totalCount = 0;
 
         // Try to use cache first
         if (projectsCache.isReady()) {
           const cachedProjects = projectsCache.getProjects();
-          const paginatedProjects = cachedProjects.slice(from, to + 1);
-          const totalCount = projectsCache.getCount();
+          filteredProjects = category === "all" 
+            ? cachedProjects 
+            : cachedProjects.filter((p) => p.category === category);
+          totalCount = filteredProjects.length;
+        } else {
+          // If cache not ready, wait for it or fetch directly
+          await projectsCache.prefetchAllProjects();
           
-          setProjects((prev) => 
-            loadMore ? [...prev, ...paginatedProjects] : paginatedProjects
-          );
-          setHasMore(totalCount > to + 1);
-          setError(null);
-          setLoading(false);
-          setLoadingMore(false);
-          return;
+          if (projectsCache.isReady()) {
+            const cachedProjects = projectsCache.getProjects();
+            filteredProjects = category === "all" 
+              ? cachedProjects 
+              : cachedProjects.filter((p) => p.category === category);
+            totalCount = filteredProjects.length;
+          }
         }
 
-        // If cache not ready, wait for it or fetch directly
-        await projectsCache.prefetchAllProjects();
-        
-        if (projectsCache.isReady()) {
-          const cachedProjects = projectsCache.getProjects();
-          const paginatedProjects = cachedProjects.slice(from, to + 1);
-          const totalCount = projectsCache.getCount();
+        // If we have cached data, use it
+        if (filteredProjects.length > 0) {
+          const paginatedProjects = filteredProjects.slice(from, to + 1);
+          const calculatedTotalPages = Math.ceil(totalCount / PROJECTS_PER_PAGE);
           
-          setProjects((prev) => 
-            loadMore ? [...prev, ...paginatedProjects] : paginatedProjects
-          );
-          setHasMore(totalCount > to + 1);
+          setProjects(paginatedProjects);
+          setTotalProjects(totalCount);
+          setTotalPages(calculatedTotalPages);
           setError(null);
           setLoading(false);
-          setLoadingMore(false);
           return;
         }
 
         // Fallback to direct query if cache fails
+        let query = supabase
+          .from("projects")
+          .select("id, title, description, status, image, location, category, created_at, updated_at", { count: "exact" })
+          .order("created_at", { ascending: false });
+
+        // Apply category filter if needed
+        if (category !== "all") {
+          query = query.eq("category", category);
+        }
+
         const {
           data,
           error: fetchError,
           count,
-        } = await supabase
-          .from("projects")
-          .select("id, title, description, status, image, location, category, created_at, updated_at", { count: "exact" })
-          .order("created_at", { ascending: false })
-          .range(from, to);
+        } = await query.range(from, to);
 
         if (fetchError) throw fetchError;
 
@@ -346,17 +351,11 @@ const Projects = () => {
           updated_at: project.updated_at,
         }));
 
-        if (loadMore) {
-          setProjects((prev) => [...prev, ...transformedProjects]);
-        } else {
-          setProjects(transformedProjects);
-        }
+        const calculatedTotalPages = Math.ceil((count || 0) / PROJECTS_PER_PAGE);
 
-        // Calculate hasMore based on current total and fetched count
-        const currentTotal = loadMore
-          ? currentProjects.length + transformedProjects.length
-          : transformedProjects.length;
-        setHasMore(currentTotal < (count || 0));
+        setProjects(transformedProjects);
+        setTotalProjects(count || 0);
+        setTotalPages(calculatedTotalPages);
         setError(null);
       } catch (err) {
         console.error("Error fetching projects:", err);
@@ -365,18 +364,22 @@ const Projects = () => {
         setError(errorMessage);
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
     []
   );
 
+  // Fetch projects when page or category changes
   useEffect(() => {
-    fetchProjects();
-  }, [fetchProjects]);
+    setCurrentPage(1); // Reset to page 1 when category changes
+  }, [selectedCategory]);
 
-  const loadMore = () => {
-    fetchProjects(true, projects);
+  useEffect(() => {
+    fetchProjects(currentPage, selectedCategory);
+  }, [currentPage, selectedCategory, fetchProjects]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   if (loading) {
@@ -576,29 +579,13 @@ const Projects = () => {
       </motion.section> */}
       <CategoryFilter projects={projects} />
 
-      {hasMore && (
-        <motion.div
-          className="load-more-container"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-        >
-          <button
-            onClick={loadMore}
-            disabled={loadingMore}
-            className="load-more-btn"
-          >
-            {loadingMore ? (
-              <>
-                <div className="loading-spinner-small"></div>
-                Loading...
-              </>
-            ) : (
-              "Load More Projects"
-            )}
-          </button>
-        </motion.div>
+      {!loading && totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          loading={loading}
+        />
       )}
     </motion.div>
   );

@@ -13,8 +13,6 @@ const Layout = ({ children }: LayoutProps) => {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
-  console.log('Layout component rendering', { pathname, isAdmin });
-
   return (
     <div className="flex flex-col min-h-screen">
       {!isAdmin && <Navbar />}

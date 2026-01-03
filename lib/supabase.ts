@@ -220,4 +220,3 @@ export const postOperations = {
   },
 };
 
-console.log("Supabase client created successfully");

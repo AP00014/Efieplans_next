@@ -86,7 +86,6 @@ class BlogCache {
       // Preload images from cache
       this._preloadImages();
       
-      console.log("✅ Loaded blog posts from localStorage cache");
       return true;
     } catch (error) {
       console.error("Error loading from localStorage:", error);
@@ -109,7 +108,6 @@ class BlogCache {
       const sizeInMB = new Blob([jsonString]).size / (1024 * 1024);
       
       if (sizeInMB > 4) {
-        console.warn("Blog cache data is large, consider optimizing");
         // Only save essential data if too large
         const essentialData: CachedBlogData = {
           posts: this.posts.map(p => ({
@@ -123,11 +121,8 @@ class BlogCache {
       } else {
         localStorage.setItem(this.CACHE_KEY, jsonString);
       }
-      
-      console.log("✅ Saved blog posts to localStorage cache");
     } catch (error) {
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        console.warn("localStorage quota exceeded, clearing old cache");
         try {
           localStorage.removeItem(this.CACHE_KEY);
           const data: CachedBlogData = {

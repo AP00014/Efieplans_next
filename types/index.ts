@@ -191,4 +191,5 @@ export interface Project {
   created_at: string;
   updated_at: string;
   created_by?: string;
+  showcase_position?: number; // Position in home page showcase (1-6)
 }

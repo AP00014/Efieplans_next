@@ -37,8 +37,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
     // Update browser header and mobile status bar colors
     updateBrowserThemeColors(isDarkMode);
-
-    console.log("Theme changed to:", isDarkMode ? "dark" : "light");
   }, [isDarkMode]);
 
   const updateBrowserThemeColors = (isDark: boolean) => {

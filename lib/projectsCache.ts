@@ -82,7 +82,6 @@ class ProjectsCache {
       // Preload images from cache
       this._preloadImages();
       
-      console.log("✅ Loaded projects from localStorage cache");
       return true;
     } catch (error) {
       console.error("Error loading from localStorage:", error);
@@ -109,7 +108,6 @@ class ProjectsCache {
       const sizeInMB = new Blob([jsonString]).size / (1024 * 1024);
       
       if (sizeInMB > 4) {
-        console.warn("Cache data is large, consider optimizing");
         // Only save essential data if too large
         const essentialData: CachedData = {
           projects: this.projects.map(p => ({
@@ -124,12 +122,9 @@ class ProjectsCache {
       } else {
         localStorage.setItem(this.CACHE_KEY, jsonString);
       }
-      
-      console.log("✅ Saved projects to localStorage cache");
     } catch (error) {
       // If quota exceeded, try to clear old cache and retry
       if (error instanceof DOMException && error.name === "QuotaExceededError") {
-        console.warn("localStorage quota exceeded, clearing old cache");
         try {
           localStorage.clear();
           const data: CachedData = {
@@ -226,30 +221,24 @@ class ProjectsCache {
     
     this.projects.forEach((project, index) => {
       if (project.image && !this.preloadedImages.has(project.image)) {
-        // Prioritize first 6 images (likely to be visible immediately)
-        if (index < 6) {
-          priorityUrls.push(project.image);
-        } else {
-          imageUrls.push(project.image);
+        // Clean the URL - remove any existing query parameters that might cause issues
+        let cleanUrl = project.image;
+        try {
+          const url = new URL(project.image);
+          // Remove query parameters that Supabase Storage doesn't support
+          // Supabase Storage doesn't support image transformation via query params
+          url.search = '';
+          cleanUrl = url.toString();
+        } catch (e) {
+          // If URL parsing fails, use original URL
+          cleanUrl = project.image;
         }
         
-        // For Supabase URLs, also queue optimized versions
-        if (project.image.includes("supabase.co/storage")) {
-          try {
-            const url = new URL(project.image);
-            url.searchParams.set("width", "800");
-            url.searchParams.set("quality", "75");
-            url.searchParams.set("format", "webp");
-            const optimizedUrl = url.toString();
-            
-            if (index < 6) {
-              priorityUrls.push(optimizedUrl);
-            } else {
-              imageUrls.push(optimizedUrl);
-            }
-          } catch (e) {
-            // Ignore URL parsing errors
-          }
+        // Prioritize first 6 images (likely to be visible immediately)
+        if (index < 6) {
+          priorityUrls.push(cleanUrl);
+        } else {
+          imageUrls.push(cleanUrl);
         }
       }
     });
@@ -258,7 +247,7 @@ class ProjectsCache {
     priorityUrls.forEach((url) => this._preloadSingleImage(url));
 
     // Preload remaining images in batches using requestIdleCallback for non-blocking
-    const batchSize = 15; // Larger batches for better performance
+    const batchSize = 10; // Reduced batch size to avoid overwhelming connections
     for (let i = 0; i < imageUrls.length; i += batchSize) {
       const batch = imageUrls.slice(i, i + batchSize);
       
@@ -267,10 +256,10 @@ class ProjectsCache {
           batch.forEach((url) => this._preloadSingleImage(url));
         }, { timeout: 5000 });
       } else {
-        // Fallback: stagger batches
+        // Fallback: stagger batches with longer delays
         setTimeout(() => {
           batch.forEach((url) => this._preloadSingleImage(url));
-        }, i * 5); // Faster staggering
+        }, i * 10); // Slower staggering to avoid connection issues
       }
     }
   }
@@ -280,44 +269,70 @@ class ProjectsCache {
     
     this.preloadedImages.add(url);
     
-    // Use multiple preloading strategies for maximum browser optimization
+    // Use multiple preloading strategies with error handling
     if (typeof document !== "undefined") {
-      // Strategy 1: Link prefetch (browser-level optimization)
-      const link = document.createElement("link");
-      link.rel = "prefetch";
-      link.as = "image";
-      link.href = url;
-      if ("fetchPriority" in link) {
-        (link as any).fetchPriority = "high";
-      }
-      document.head.appendChild(link);
-      
-      // Strategy 2: Preload for critical images (first 12)
-      if (this.preloadedImages.size <= 12) {
-        const preloadLink = document.createElement("link");
-        preloadLink.rel = "preload";
-        preloadLink.as = "image";
-        preloadLink.href = url;
-        if ("fetchPriority" in preloadLink) {
-          (preloadLink as any).fetchPriority = "high";
+      try {
+        // Strategy 1: Link prefetch (browser-level optimization)
+        const link = document.createElement("link");
+        link.rel = "prefetch";
+        link.as = "image";
+        link.href = url;
+        if ("fetchPriority" in link) {
+          (link as any).fetchPriority = "high";
         }
-        document.head.appendChild(preloadLink);
+        // Add error handler
+        link.onerror = () => {
+          // Silently handle prefetch errors
+        };
+        document.head.appendChild(link);
+        
+        // Strategy 2: Preload for critical images (first 12)
+        if (this.preloadedImages.size <= 12) {
+          const preloadLink = document.createElement("link");
+          preloadLink.rel = "preload";
+          preloadLink.as = "image";
+          preloadLink.href = url;
+          if ("fetchPriority" in preloadLink) {
+            (preloadLink as any).fetchPriority = "high";
+          }
+          preloadLink.onerror = () => {
+            // Silently handle preload errors
+          };
+          document.head.appendChild(preloadLink);
+        }
+      } catch (error) {
+        // Silently handle DOM manipulation errors
       }
     }
     
     // Strategy 3: Image object for immediate loading (works in parallel with prefetch)
-    const img = new Image();
-    img.src = url;
-    img.loading = "eager";
-    if ("fetchPriority" in img) {
-      (img as any).fetchPriority = "high";
-    }
-    
-    // Pre-decode image for faster rendering
-    if ("decode" in img) {
-      img.decode().catch(() => {
-        // Ignore decode errors
-      });
+    try {
+      const img = new Image();
+      
+      // Add error handlers to prevent console errors
+      img.onerror = () => {
+        // Silently handle image load errors (QUIC protocol errors, etc.)
+        // These are often network-level issues that don't affect functionality
+      };
+      
+      img.onload = () => {
+        // Image loaded successfully
+      };
+      
+      img.src = url;
+      img.loading = "eager";
+      if ("fetchPriority" in img) {
+        (img as any).fetchPriority = "high";
+      }
+      
+      // Pre-decode image for faster rendering
+      if ("decode" in img) {
+        img.decode().catch(() => {
+          // Ignore decode errors
+        });
+      }
+    } catch (error) {
+      // Silently handle image creation errors
     }
   }
 
