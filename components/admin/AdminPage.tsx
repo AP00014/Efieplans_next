@@ -3961,7 +3961,21 @@ const ManageProjectsContent: React.FC = () => {
         }
       }
       
-      setProjects(data || []);
+      // Transform data to match Project type, providing default details if missing
+      const transformedProjects: Project[] = (data || []).map((project: any) => ({
+        ...project,
+        details: project.details || {
+          timeline: undefined,
+          materials: undefined,
+          features: undefined,
+          imageGallery: undefined,
+          blueprints: undefined,
+          videos: undefined,
+          virtualTour: undefined,
+        },
+      }));
+      
+      setProjects(transformedProjects);
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {
