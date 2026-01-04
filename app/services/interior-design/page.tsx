@@ -161,7 +161,7 @@ const InteriorDesignPage = () => {
                   >
                     <OptimizedImage
                       src={item.url}
-                      alt={item.alt || item.title}
+                      alt={item.type === 'image' ? item.alt : item.title}
                       className="thumbnail-img"
                       width={400}
                       height={300}
