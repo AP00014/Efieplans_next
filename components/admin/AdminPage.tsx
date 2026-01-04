@@ -4129,10 +4129,19 @@ const ManageProjectsContent: React.FC = () => {
     setEditFormData({
       title: project.title || "",
       description: project.description || "",
-      status: project.status || "ongoing",
+      status: (project.status || "ongoing") as "completed" | "ongoing",
       image: project.image || "",
       location: project.location || "",
       category: project.category ?? "", // Use nullish coalescing - only use "" if category is null/undefined
+      height: "",
+      floors: "",
+      area: "",
+      completion: "",
+      units: "",
+      bedrooms: "",
+      length: "",
+      lanes: "",
+      specifications: {} as Record<string, string>,
       timeline: details.timeline || "",
       materials: details.materials || [],
       features: details.features || [],
@@ -4152,10 +4161,19 @@ const ManageProjectsContent: React.FC = () => {
     setEditFormData({
       title: "",
       description: "",
-      status: "ongoing",
+      status: "ongoing" as "completed" | "ongoing",
       image: "",
       location: "",
       category: "",
+      height: "",
+      floors: "",
+      area: "",
+      completion: "",
+      units: "",
+      bedrooms: "",
+      length: "",
+      lanes: "",
+      specifications: {} as Record<string, string>,
       timeline: "",
       materials: [],
       features: [],
@@ -5661,11 +5679,26 @@ const ShowcaseManagementContent: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, showcase_position")
+        .select("id, title, description, status, image, location, category, showcase_position, created_at, updated_at")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setAllProjects(data || []);
+      
+      // Transform data to match Project type, providing default details if missing
+      const transformedProjects: Project[] = (data || []).map((project: any) => ({
+        ...project,
+        details: project.details || {
+          timeline: undefined,
+          materials: undefined,
+          features: undefined,
+          imageGallery: undefined,
+          blueprints: undefined,
+          videos: undefined,
+          virtualTour: undefined,
+        },
+      }));
+      
+      setAllProjects(transformedProjects);
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {

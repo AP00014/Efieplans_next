@@ -5,21 +5,27 @@ import type { ReactNode } from "react";
 import { ThemeContext } from "./ThemeContextValue";
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
+  // Always start with false to match server-side rendering
+  // Then update from localStorage after hydration
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Initialize theme from localStorage after mount (prevents hydration mismatch)
+  useEffect(() => {
+    setMounted(true);
     // Check if user has previously set a theme preference
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
-      return savedTheme === "dark";
+      setIsDarkMode(savedTheme === "dark");
+    } else {
+      // Otherwise check system preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setIsDarkMode(prefersDark);
     }
-    // Otherwise check system preference
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
+  }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (!mounted || typeof window === "undefined") {
       return;
     }
 
@@ -37,7 +43,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
     // Update browser header and mobile status bar colors
     updateBrowserThemeColors(isDarkMode);
-  }, [isDarkMode]);
+  }, [isDarkMode, mounted]);
 
   const updateBrowserThemeColors = (isDark: boolean) => {
     // Define theme colors

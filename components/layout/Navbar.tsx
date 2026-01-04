@@ -39,6 +39,12 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only showing theme-dependent content after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Handle scroll effect
   useEffect(() => {
@@ -69,7 +75,8 @@ const Navbar = () => {
     <nav
       className={`navbar ${
         isScrolled ? "navbar-scrolled" : "navbar-transparent"
-      } ${isDarkMode ? "dark" : ""}`}
+      } ${mounted && isDarkMode ? "dark" : ""}`}
+      suppressHydrationWarning
     >
       <div className="container-custom navbar-container">
         {/* Logo - Far Left */}
@@ -111,8 +118,9 @@ const Navbar = () => {
               onClick={toggleTheme}
               className="desktop-theme-toggle"
               aria-label="Toggle theme"
+              suppressHydrationWarning
             >
-              {isDarkMode ? <FaSun size={20} /> : <FaMoon size={20} />}
+              {mounted && isDarkMode ? <FaSun size={20} /> : <FaMoon size={20} />}
             </button>
 
             {user ? (
@@ -232,9 +240,10 @@ const Navbar = () => {
                 onClick={toggleTheme}
                 className="fast-menu-link fast-theme-toggle"
                 aria-label="Toggle theme"
+                suppressHydrationWarning
               >
                 <div className="fast-theme-content">
-                  {isDarkMode ? (
+                  {mounted && isDarkMode ? (
                     <>
                       <FaSun className="fast-theme-icon" />
                       Light Mode

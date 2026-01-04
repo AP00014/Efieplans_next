@@ -388,3 +388,4 @@ export const getAllCategories = (): InteriorCategory[] => {
 
 export default interiorDesignMediaLibrary;
 
+

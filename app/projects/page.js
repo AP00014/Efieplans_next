@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { FiExternalLink } from "react-icons/fi";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -15,6 +16,14 @@ import { useRouter } from "next/navigation";
 import Pagination from "../../components/common/Pagination";
 
 const ProjectGrid = ({ projects }) => {
+  // Get description snippet for overlay
+  const getDescriptionSnippet = (description) => {
+    if (!description) return "Innovative architectural solutions";
+    return description.length > 80
+      ? description.substring(0, 80) + "..."
+      : description;
+  };
+
   return (
     <motion.div
       className="projects-grid"
@@ -41,24 +50,26 @@ const ProjectGrid = ({ projects }) => {
               transition: { duration: 0.3 },
             }}
           >
-            <OptimizedImage
-              src={project.image}
-              alt={project.title}
-              className="project-image"
-              width={400}
-              height={300}
-              priority={index < 3}
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-            <div className="project-info">
-              <h4>{project.title}</h4>
-              <p className="project-location">📍 {project.location}</p>
-              <Link
-                href={`/projects/${project.id}`}
-                className="project-view-more"
-              >
-                Explore
-              </Link>
+            <div className="project-image-wrapper">
+              <OptimizedImage
+                src={project.image}
+                alt={project.title}
+                className="project-image"
+                width={400}
+                height={300}
+                priority={index < 3}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+              <div className="project-info">
+                <h3>{project.title}</h3>
+                <p>{getDescriptionSnippet(project.description)}</p>
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="view-link"
+                >
+                  View Details <FiExternalLink />
+                </Link>
+              </div>
             </div>
           </motion.div>
         ))}
@@ -262,11 +273,13 @@ const CategoryFilter = ({ projects }) => {
 
 const Projects = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const selectedCategory = searchParams.get("category") || "all";
+  const pageFromUrl = parseInt(searchParams.get("page") || "1", 10);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProjects, setTotalProjects] = useState(0);
   const PROJECTS_PER_PAGE = 12;
@@ -369,9 +382,52 @@ const Projects = () => {
     []
   );
 
-  // Fetch projects when page or category changes
+  // Track if we're updating the URL to prevent infinite loops
+  const isUpdatingUrl = useRef(false);
+  const urlPageParam = searchParams.get("page");
+
+  // Read page from URL on mount and when URL changes (e.g., browser back button)
   useEffect(() => {
-    setCurrentPage(1); // Reset to page 1 when category changes
+    if (isUpdatingUrl.current) {
+      isUpdatingUrl.current = false;
+      return;
+    }
+    const urlPage = parseInt(urlPageParam || "1", 10);
+    // Only update if URL page is different and valid
+    if (urlPage >= 1 && urlPage !== currentPage) {
+      setCurrentPage(urlPage);
+    }
+  }, [urlPageParam, currentPage]);
+
+  // Update URL when page changes
+  useEffect(() => {
+    const currentUrlPage = parseInt(urlPageParam || "1", 10);
+    
+    // Only update URL if page actually changed
+    if (currentUrlPage === currentPage) {
+      return;
+    }
+    
+    const params = new URLSearchParams(searchParams.toString());
+    if (currentPage === 1) {
+      params.delete("page");
+    } else {
+      params.set("page", currentPage.toString());
+    }
+    
+    isUpdatingUrl.current = true;
+    const newUrl = params.toString() ? `?${params.toString()}` : "";
+    router.replace(`/projects${newUrl}`, { scroll: false });
+  }, [currentPage, router, searchParams, urlPageParam]);
+
+  // Reset to page 1 when category changes (but preserve page if category is the same)
+  const prevCategoryRef = useRef(selectedCategory);
+  useEffect(() => {
+    // Only reset if category actually changed, not on initial load or when coming back
+    if (prevCategoryRef.current !== selectedCategory && prevCategoryRef.current !== undefined) {
+      setCurrentPage(1);
+    }
+    prevCategoryRef.current = selectedCategory;
   }, [selectedCategory]);
 
   useEffect(() => {
@@ -380,6 +436,8 @@ const Projects = () => {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    // Scroll to top of projects section when page changes
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (loading) {
@@ -591,4 +649,17 @@ const Projects = () => {
   );
 };
 
-export default Projects;
+const ProjectsPage = () => {
+  return (
+    <Suspense fallback={
+      <div style={{ textAlign: "center", padding: "4rem" }}>
+        <div className="loading-spinner" style={{ margin: "0 auto" }}></div>
+        <p>Loading projects...</p>
+      </div>
+    }>
+      <Projects />
+    </Suspense>
+  );
+};
+
+export default ProjectsPage;

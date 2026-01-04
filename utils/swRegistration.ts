@@ -1,7 +1,7 @@
 // Service Worker Registration Utility
 export const registerServiceWorker = async () => {
-  // Only register service worker in production
-  if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  // Only register service worker in production and browser environment
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/Efieplans/'
