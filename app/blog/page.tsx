@@ -80,7 +80,7 @@ const BlogPage: React.FC = () => {
           .select(
             `
             id, title, content, image_url, video_url, tags, category, user_id, created_at, updated_at,
-            profiles: user_id (id, username, full_name, avatar_url)
+            profiles: user_id (id, username, full_name, avatar_url, role, created_at, updated_at)
           `
           )
           .order("created_at", { ascending: false })
@@ -115,9 +115,14 @@ const BlogPage: React.FC = () => {
                 : Promise.resolve({ data: null }),
             ]);
 
+            // Handle profiles as array (Supabase returns arrays for foreign key relationships)
+            const profileData = Array.isArray(post.profiles) 
+              ? post.profiles[0] 
+              : post.profiles;
+
             return {
               ...post,
-              author: post.profiles || null,
+              author: profileData as Profile | null,
               likesCount: likesResult.count || 0,
               commentsCount: commentsResult.count || 0,
               userLiked: !!likeStatus.data,
