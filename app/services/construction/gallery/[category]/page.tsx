@@ -99,7 +99,7 @@ const ConstructionGalleryPage = () => {
             >
               <OptimizedImage
                 src={item.url}
-                alt={item.alt || item.title}
+                alt={item.type === 'image' ? item.alt : item.title}
                 className="gallery-item-image-full"
                 width={600}
                 height={450}

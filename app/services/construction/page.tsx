@@ -12,6 +12,7 @@ import {
   FaPlay,
   FaImages,
   FaVideo,
+  FaArrowRight,
   FaTimes,
 } from "react-icons/fa";
 import { 
@@ -177,7 +178,7 @@ const ConstructionPage = () => {
                   >
                     <OptimizedImage
                       src={item.url}
-                      alt={item.alt || item.title}
+                      alt={item.type === 'image' ? item.alt : item.title}
                       className="thumbnail-img"
                       width={400}
                       height={300}
@@ -189,6 +190,18 @@ const ConstructionPage = () => {
                       {item.description && (
                         <p>{item.description.length > 80 ? item.description.substring(0, 80) + '...' : item.description}</p>
                       )}
+                      <div className="construction-overlay-actions">
+                        <Link
+                          href={`/services/construction/${item.id}`}
+                          className="construction-view-link primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowImageModal(false);
+                          }}
+                        >
+                          View Details <FaArrowRight />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
