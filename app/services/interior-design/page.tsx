@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import ImageGallery from "react-image-gallery";
 import "react-image-gallery/styles/css/image-gallery.css";
@@ -12,7 +11,6 @@ import {
   FaPlay,
   FaImages,
   FaVideo,
-  FaArrowRight,
   FaTimes,
 } from "react-icons/fa";
 import { 
@@ -173,28 +171,6 @@ const InteriorDesignPage = () => {
                       {item.description && (
                         <p>{item.description.length > 80 ? item.description.substring(0, 80) + '...' : item.description}</p>
                       )}
-                      <div className="construction-overlay-actions">
-                        <Link
-                          href={`/services/interior-design/${item.id}`}
-                          className="construction-view-link primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowImageModal(false);
-                          }}
-                        >
-                          View Details <FaArrowRight />
-                        </Link>
-                        <Link
-                          href={`/services/interior-design/gallery/${item.category}`}
-                          className="construction-view-link secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowImageModal(false);
-                          }}
-                        >
-                          View All <FaArrowRight />
-                        </Link>
-                      </div>
                     </div>
                   </div>
                 ))}
