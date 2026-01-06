@@ -332,7 +332,7 @@ const Projects = () => {
         // Fallback to direct query if cache fails
         let query = supabase
           .from("projects")
-          .select("id, title, description, status, image, location, category, created_at, updated_at", { count: "exact" })
+          .select("id, title, description, image, location, category, created_at, updated_at", { count: "exact" })
           .order("created_at", { ascending: false });
 
         // Apply category filter if needed
@@ -355,7 +355,6 @@ const Projects = () => {
           id: project.id,
           title: project.title,
           description: project.description,
-          status: project.status,
           image: project.image,
           location: project.location,
           category: project.category || undefined,

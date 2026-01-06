@@ -3143,7 +3143,6 @@ const CreateProjectContent: React.FC = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    status: "ongoing" as "completed" | "ongoing",
     image: "",
     location: "",
     category: "" as string,
@@ -3158,7 +3157,6 @@ const CreateProjectContent: React.FC = () => {
     lanes: "",
     // Dynamic specifications for custom fields
     specifications: {} as Record<string, string>,
-    timeline: "",
     materials: [] as string[],
     features: [] as string[],
     imageGallery: [] as string[],
@@ -3377,7 +3375,6 @@ const CreateProjectContent: React.FC = () => {
       if (!user) throw new Error("Not authenticated");
 
       const details = {
-        timeline: formData.timeline || undefined,
         materials:
           formData.materials.length > 0 ? formData.materials : undefined,
         features: formData.features.length > 0 ? formData.features : undefined,
@@ -3394,10 +3391,8 @@ const CreateProjectContent: React.FC = () => {
         ? formData.category.trim() 
         : null;
 
-      // Ensure status is valid
-      const statusValue = formData.status === "completed" || formData.status === "ongoing"
-        ? formData.status
-        : "ongoing";
+      // Set default status (required by database but not shown in UI)
+      const statusValue = "ongoing";
 
       const { error } = await supabase
         .from("projects")
@@ -3425,7 +3420,6 @@ const CreateProjectContent: React.FC = () => {
       setFormData({
         title: "",
         description: "",
-        status: "ongoing" as "completed" | "ongoing",
         image: "",
         location: "",
         category: "",
@@ -3438,7 +3432,6 @@ const CreateProjectContent: React.FC = () => {
         length: "",
         lanes: "",
         specifications: {} as Record<string, string>,
-        timeline: "",
         materials: [],
         features: [],
         imageGallery: [],
@@ -3498,24 +3491,6 @@ const CreateProjectContent: React.FC = () => {
         </div>
 
         <div className="form-row">
-          <div className="form-group status-group">
-            <label htmlFor="status" className="status-label">
-              <CheckCircle size={20} className="status-icon" />
-              Status 
-            </label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-              required
-              className="form-input status-select"
-            >
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-
           <div className="form-group category-group">
             <label htmlFor="category" className="category-label">
               <Tag size={20} className="category-icon" />
@@ -3614,21 +3589,6 @@ const CreateProjectContent: React.FC = () => {
           />
         </div>
 
-        <div className="form-group timeline-group">
-          <label htmlFor="timeline" className="timeline-label">
-            <Calendar size={20} className="timeline-icon" />
-            Timeline
-          </label>
-          <input
-            type="text"
-            id="timeline"
-            name="timeline"
-            value={formData.timeline}
-            onChange={handleInputChange}
-            placeholder="e.g., 2018-2025"
-            className="form-input timeline-input"
-          />
-        </div>
 
         <div className="form-group virtual-tour-group">
           <label htmlFor="virtualTour" className="virtual-tour-label">
@@ -3940,7 +3900,7 @@ const ManageProjectsContent: React.FC = () => {
       // Optimized query: Only fetch fields needed for admin list view
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, created_at, updated_at, showcase_position")
+        .select("id, title, description, image, location, category, created_at, updated_at, showcase_position")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3965,7 +3925,6 @@ const ManageProjectsContent: React.FC = () => {
       const transformedProjects: Project[] = (data || []).map((project: any) => ({
         ...project,
         details: project.details || {
-          timeline: undefined,
           materials: undefined,
           features: undefined,
           imageGallery: undefined,
@@ -4084,7 +4043,6 @@ const ManageProjectsContent: React.FC = () => {
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
-    status: "ongoing" as "completed" | "ongoing",
     image: "",
     location: "",
     category: "" as string,
@@ -4099,7 +4057,6 @@ const ManageProjectsContent: React.FC = () => {
     lanes: "",
     // Dynamic specifications for custom fields
     specifications: {} as Record<string, string>,
-    timeline: "",
     materials: [] as string[],
     features: [] as string[],
     imageGallery: [] as string[],
@@ -4129,7 +4086,6 @@ const ManageProjectsContent: React.FC = () => {
     setEditFormData({
       title: project.title || "",
       description: project.description || "",
-      status: (project.status || "ongoing") as "completed" | "ongoing",
       image: project.image || "",
       location: project.location || "",
       category: project.category ?? "", // Use nullish coalescing - only use "" if category is null/undefined
@@ -4142,7 +4098,6 @@ const ManageProjectsContent: React.FC = () => {
       length: "",
       lanes: "",
       specifications: {} as Record<string, string>,
-      timeline: details.timeline || "",
       materials: details.materials || [],
       features: details.features || [],
       imageGallery: details.imageGallery || [],
@@ -4161,7 +4116,6 @@ const ManageProjectsContent: React.FC = () => {
     setEditFormData({
       title: "",
       description: "",
-      status: "ongoing" as "completed" | "ongoing",
       image: "",
       location: "",
       category: "",
@@ -4174,7 +4128,6 @@ const ManageProjectsContent: React.FC = () => {
       length: "",
       lanes: "",
       specifications: {} as Record<string, string>,
-      timeline: "",
       materials: [],
       features: [],
       imageGallery: [],
@@ -4210,7 +4163,7 @@ const ManageProjectsContent: React.FC = () => {
     
     setEditFormData((prev) => {
       const updated = { ...prev, [name]: selectedValue };
-      console.log("Updated editFormData - Category:", updated.category, "Status:", updated.status);
+      console.log("Updated editFormData - Category:", updated.category);
       return updated;
     });
   };
@@ -4477,16 +4430,12 @@ const ManageProjectsContent: React.FC = () => {
     // Get the actual current values from the form elements directly
     const form = e.currentTarget as HTMLFormElement;
     const categorySelect = form.querySelector('#edit-category') as HTMLSelectElement;
-    const statusSelect = form.querySelector('#edit-status') as HTMLSelectElement;
     
     const actualCategoryValue = categorySelect?.value || editFormData.category;
-    const actualStatusValue = statusSelect?.value || editFormData.status;
     
     console.log("Form element values (direct from DOM):", {
       categoryFromSelect: categorySelect?.value,
-      statusFromSelect: statusSelect?.value,
       categoryFromState: editFormData.category,
-      statusFromState: editFormData.status,
     });
     
     // Use the actual form values, not just state (in case state is stale)
@@ -4500,21 +4449,16 @@ const ManageProjectsContent: React.FC = () => {
       ...editFormData,
       category: editFormData.category,
       categoryType: typeof editFormData.category,
-      status: editFormData.status,
-      statusType: typeof editFormData.status,
     });
     console.log("Form submitted with formDataToUse (from DOM):", {
       ...formDataToUse,
       category: formDataToUse.category,
       categoryType: typeof formDataToUse.category,
-      status: formDataToUse.status,
-      statusType: typeof formDataToUse.status,
     });
     console.log("Original editingProject:", {
       ...editingProject,
       category: editingProject?.category,
       categoryType: typeof editingProject?.category,
-      status: editingProject?.status,
     });
     
     // Use the actual form values, not just state (in case state is stale)
@@ -4599,24 +4543,14 @@ const ManageProjectsContent: React.FC = () => {
         }
       }
 
-      // Ensure status is valid - must be one of the allowed values
-      // Use the actual DOM value
-      let statusValue: "completed" | "ongoing" = "ongoing";
-      if (actualStatusValue === "completed" || actualStatusValue === "ongoing") {
-        statusValue = actualStatusValue;
-      }
+      // Set default status (required by database but not shown in UI)
+      const statusValue: "completed" | "ongoing" = "ongoing";
 
       console.log("Category processing:", {
         original: editFormData.category,
         trimmed: editFormData.category?.trim(),
         final: categoryValue,
         type: typeof categoryValue,
-      });
-
-      console.log("Status processing:", {
-        original: editFormData.status,
-        final: statusValue,
-        type: typeof statusValue,
       });
 
       // Prepare update data - explicitly set all fields
@@ -4648,11 +4582,6 @@ const ManageProjectsContent: React.FC = () => {
 
       // Log comparison with original values
       console.log("Value comparison:", {
-        status: {
-          original: editingProject.status,
-          new: statusValue,
-          changed: editingProject.status !== statusValue,
-        },
         category: {
           original: editingProject.category,
           new: categoryValue,
@@ -4670,8 +4599,6 @@ const ManageProjectsContent: React.FC = () => {
         updateData,
         originalCategory: editingProject.category,
         newCategory: categoryValue,
-        originalStatus: editingProject.status,
-        newStatus: statusValue,
       });
 
       // Force update by explicitly setting all fields
@@ -4706,7 +4633,7 @@ const ManageProjectsContent: React.FC = () => {
         .from("projects")
         .update(updatePayload)
         .eq("id", editingProject.id)
-        .select("id, category, status");
+        .select("id, category");
       
       console.log("Update result - Error:", updateError);
       console.log("Update result - Data:", updateResponseData);
@@ -4746,7 +4673,7 @@ const ManageProjectsContent: React.FC = () => {
       // Verify the update by fetching the project again
       const { data: verifyData, error: verifyError } = await supabase
         .from("projects")
-        .select("id, status, category, title, location")
+        .select("id, category, title, location")
         .eq("id", editingProject.id)
         .single();
 
@@ -4833,7 +4760,7 @@ const ManageProjectsContent: React.FC = () => {
         // Fetch the full project to see what's actually in the database
         const { data: reVerifyData, error: reVerifyError } = await supabase
           .from("projects")
-          .select("id, category, status, title, location, created_at, updated_at")
+          .select("id, category, title, location, created_at, updated_at")
           .eq("id", editingProject.id)
           .single();
         
@@ -4987,26 +4914,6 @@ const ManageProjectsContent: React.FC = () => {
                 </div>
 
                 <div className="form-row">
-                  <div className="form-group edit-status-group">
-                    <label htmlFor="edit-status" className="edit-status-label">
-                      <CheckCircle size={20} className="edit-status-icon" />
-                      Status *
-                    </label>
-                    <select
-                      id="edit-status"
-                      name="status"
-                      value={editFormData.status}
-                      onChange={(e) => {
-                        console.log("Status select changed:", e.target.value);
-                        handleEditInputChange(e);
-                      }}
-                      required
-                      className="form-input edit-status-select"
-                    >
-                      <option value="ongoing">Ongoing</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </div>
 
                   <div className="form-group edit-category-group">
                     <label htmlFor="edit-category" className="edit-category-label">
@@ -5139,21 +5046,6 @@ const ManageProjectsContent: React.FC = () => {
                   />
                 </div>
 
-                <div className="form-group edit-timeline-group">
-                  <label htmlFor="edit-timeline" className="edit-timeline-label">
-                    <Calendar size={20} className="edit-timeline-icon" />
-                    Timeline
-                  </label>
-                  <input
-                    type="text"
-                    id="edit-timeline"
-                    name="timeline"
-                    value={editFormData.timeline}
-                    onChange={handleEditInputChange}
-                    placeholder="e.g., 2018-2025"
-                    className="form-input edit-timeline-input"
-                  />
-                </div>
 
                 <div className="form-group edit-virtual-tour-group">
                   <label htmlFor="edit-virtualTour" className="edit-virtual-tour-label">
@@ -5548,7 +5440,6 @@ const ManageProjectsContent: React.FC = () => {
               <th>Title</th>
               <th>Category</th>
               <th>Location</th>
-              <th>Status</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
@@ -5570,15 +5461,6 @@ const ManageProjectsContent: React.FC = () => {
                 <td>{project.title}</td>
                 <td>{project.category || "N/A"}</td>
                 <td>{project.location}</td>
-                <td>
-                  <span
-                    className={`status-badge ${
-                      project.status === "completed" ? "completed" : "ongoing"
-                    }`}
-                  >
-                    {project.status}
-                  </span>
-                </td>
                 <td>{new Date(project.created_at).toLocaleDateString()}</td>
                 <td>
                   <button
@@ -5621,13 +5503,6 @@ const ManageProjectsContent: React.FC = () => {
               <div className="project-card-meta">
                 <span className="project-card-category">
                   {project.category || "N/A"}
-                </span>
-                <span
-                  className={`status-badge ${
-                    project.status === "completed" ? "completed" : "ongoing"
-                  }`}
-                >
-                  {project.status}
                 </span>
               </div>
               <div className="project-card-actions">
@@ -5679,7 +5554,7 @@ const ShowcaseManagementContent: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, showcase_position, created_at, updated_at")
+        .select("id, title, description, image, location, category, showcase_position, created_at, updated_at")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -5688,7 +5563,6 @@ const ShowcaseManagementContent: React.FC = () => {
       const transformedProjects: Project[] = (data || []).map((project: any) => ({
         ...project,
         details: project.details || {
-          timeline: undefined,
           materials: undefined,
           features: undefined,
           imageGallery: undefined,
@@ -5710,7 +5584,7 @@ const ShowcaseManagementContent: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, showcase_position")
+        .select("id, title, description, image, location, category, showcase_position")
         .not("showcase_position", "is", null)
         .order("showcase_position", { ascending: true });
 

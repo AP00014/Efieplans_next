@@ -13,14 +13,11 @@ export interface ProjectItem {
   id: string | number; // Supports both UUID strings and numeric IDs for backward compatibility
   title: string;
   description: string;
-  status: 'completed' | 'ongoing';
   image: string;
   location: string;
   category?: string;
   details: {
     specifications: Record<string, string>;
-
-    timeline?: string;
     materials?: string[];
     features?: string[];
     imageGallery?: string[];

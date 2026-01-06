@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS projects (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
-  status TEXT NOT NULL CHECK (status IN ('completed', 'ongoing')),
   image TEXT NOT NULL, -- Main thumbnail image URL (displayed on Projects page)
   location TEXT NOT NULL,
   category TEXT CHECK (category IN ('residential', 'commercial', 'town-houses', 'group-dwelling', 'architectural')),
@@ -50,7 +49,6 @@ CREATE POLICY "Only admins can delete projects" ON projects FOR DELETE USING (
 
 -- Create indexes for performance
 CREATE INDEX IF NOT EXISTS projects_category_idx ON projects(category);
-CREATE INDEX IF NOT EXISTS projects_status_idx ON projects(status);
 CREATE INDEX IF NOT EXISTS projects_created_at_idx ON projects(created_at DESC);
 CREATE INDEX IF NOT EXISTS projects_created_by_idx ON projects(created_by);
 
@@ -66,7 +64,6 @@ COMMENT ON TABLE projects IS 'Stores all project information including details a
 COMMENT ON COLUMN projects.image IS 'Main thumbnail image URL displayed on the Projects/Portfolio page. When user clicks Explore button, they are forwarded to the project detail page. Can be a Supabase Storage URL (portfolio/{project_id}/thumbnails/{filename}) or external URL.';
 COMMENT ON COLUMN projects.details IS 'JSONB object containing all project detail fields for the Project Detail page. Structure:
 {
-  "timeline": "string",                        -- Optional: Project timeline (e.g., "2018-2025")
   "materials": ["string", ...],                -- Optional: Array of material names
   "features": ["string", ...],                 -- Optional: Array of feature descriptions
   "imageGallery": ["url", ...],                -- Optional: Array of image URLs for gallery (can be Supabase Storage URLs: portfolio/{project_id}/images/{filename} or external URLs)

@@ -21,7 +21,7 @@ export const useShowcaseProjects = () => {
       // Fetch projects with showcase_position, ordered by position
       const { data, error: fetchError } = await supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, created_at, updated_at, showcase_position")
+        .select("id, title, description, image, location, category, created_at, updated_at, showcase_position")
         .not("showcase_position", "is", null)
         .order("showcase_position", { ascending: true })
         .limit(6);
@@ -33,7 +33,6 @@ export const useShowcaseProjects = () => {
         id: project.id,
         title: project.title,
         description: project.description,
-        status: project.status,
         image: project.image,
         location: project.location,
         category: project.category || undefined,

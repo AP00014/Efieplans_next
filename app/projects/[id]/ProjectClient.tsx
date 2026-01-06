@@ -384,12 +384,10 @@ const ProjectDetail = () => {
           id: data.id,
           title: data.title,
           description: data.description,
-          status: data.status as "completed" | "ongoing",
           image: data.image,
           location: data.location,
           category: data.category || undefined,
           details: data.details || {
-            timeline: undefined,
             materials: undefined,
             features: undefined,
             imageGallery: undefined,
@@ -462,9 +460,6 @@ const ProjectDetail = () => {
                 {item.category && (
                   <span className="category">{item.category}</span>
                 )}
-                <span className={`status ${item.status}`}>
-                  {item.status.toUpperCase()}
-                </span>
               </div>
             </div>
           </div>
@@ -489,13 +484,24 @@ const ProjectDetail = () => {
             </div>
           </div>
 
-          {/* Features Section */}
-          {item.details.features && item.details.features.length > 0 && (
+          {/* Features Section (includes specifications) */}
+          {((item.details.features && item.details.features.length > 0) || 
+            (item.details.specifications && Object.keys(item.details.specifications).length > 0)) && (
             <div className="features-section">
               <h3 className="section-subtitle">Project Features</h3>
               <div className="features-grid">
-                {item.details.features.map((feature, i) => (
-                  <div key={i} className="feature-item">
+                {/* Display specifications first */}
+                {item.details.specifications && Object.entries(item.details.specifications).map(([key, value], i) => (
+                  <div key={`spec-${i}`} className="feature-item">
+                    <span className="feature-icon">✓</span>
+                    <span className="feature-text">
+                      <strong>{key}:</strong> {value}
+                    </span>
+                  </div>
+                ))}
+                {/* Then display regular features */}
+                {item.details.features && item.details.features.map((feature, i) => (
+                  <div key={`feature-${i}`} className="feature-item">
                     <span className="feature-icon">✓</span>
                     <span className="feature-text">{feature}</span>
                   </div>

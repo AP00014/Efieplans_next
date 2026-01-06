@@ -175,12 +175,11 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  status: "completed" | "ongoing";
   image: string;
   location: string;
   category?: string;
   details: {
-    timeline?: string;
+    specifications?: Record<string, string>;
     materials?: string[];
     features?: string[];
     imageGallery?: string[];

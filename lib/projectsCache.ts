@@ -163,7 +163,7 @@ class ProjectsCache {
       // Fetch all projects with basic info
       supabase
         .from("projects")
-        .select("id, title, description, status, image, location, category, created_at, updated_at")
+        .select("id, title, description, image, location, category, created_at, updated_at")
         .order("created_at", { ascending: false }),
       
       // Fetch all details in parallel
@@ -182,7 +182,6 @@ class ProjectsCache {
       id: project.id,
       title: project.title,
       description: project.description,
-      status: project.status as "completed" | "ongoing",
       image: project.image,
       location: project.location,
       category: project.category || undefined,

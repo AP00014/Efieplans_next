@@ -102,11 +102,7 @@ const Footer = () => {
                 />
               </Link>
             </div>
-            <p className="footer-description">
-              Efie Plans creates luxury homes and commercial buildings for
-              Ghanaians and Africans worldwide, focusing on personalized design
-              and exceptional quality.
-            </p>
+           
             <nav aria-label="Social media links">
               <div className="footer-social">
                 <a
@@ -240,10 +236,6 @@ const Footer = () => {
             <h3 id="newsletter-heading" className="footer-heading">
               Stay Updated
             </h3>
-            <p className="footer-newsletter-text">
-              Subscribe to our newsletter for the latest design trends and
-              project inspiration.
-            </p>
             <form
               onSubmit={handleNewsletterSubmit}
               className="footer-newsletter-form"
